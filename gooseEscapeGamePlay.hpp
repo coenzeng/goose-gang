@@ -3,6 +3,7 @@
 #include "gooseEscapeUtil.hpp"
 #include "gooseEscapeActors.hpp"
 #include "gooseEscapeConsole.hpp"
+#include <fstream>
 
 /*This file is all about the game world.  You will modify this to add
     constants and function prototypes.  Modify gooseGamePlay.cpp to
@@ -46,6 +47,7 @@ const int WIN_CHAR = int('%'); //% sign, a special character used in the ancient
 */
 bool captured(Actor const & player, Actor const & monster);
 
+bool win(Actor const & player, Actor const & endpoint);
 /*
     Move the player to a new location based on the user input.  You may want
     to modify this if there are extra controls you want to add.
@@ -59,12 +61,13 @@ bool captured(Actor const & player, Actor const & monster);
 
 void movePlayer(int key, Actor & player, int map[][NUM_BOARD_Y]);
 
-/*
-    What other functions do you need to make the game work?  What can you
-    add to the basic functionality to make it more fun to play?
-*/
-void print_to_console(int map[][NUM_BOARD_Y]);
+void chasePlayer(int key, Actor & goose, Actor & player, int map[][NUM_BOARD_Y]);
 
+int random_num(int max_num, int used[MAX_OBJECTS]);
 
+int random_num(int max_num);
+
+void create_wall(int map[][NUM_BOARD_Y]);
 
 #endif
+

@@ -1,5 +1,6 @@
 #ifndef GOOSE_ESCAPE_ACTORS
 #define GOOSE_ESCAPE_ACTORS
+#include <iostream>
 #include <cmath>
 #include <BearLibTerminal.h>
 #include "gooseEscapeUtil.hpp"
