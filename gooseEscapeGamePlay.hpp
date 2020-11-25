@@ -1,3 +1,5 @@
+//gooseEscapeGamePlay.hpp
+
 #ifndef GOOSE_ESCAPE_GAMEPLAY
 #define GOOSE_ESCAPE_GAMEPLAY
 #include "gooseEscapeUtil.hpp"
@@ -30,12 +32,14 @@ const int PLAYER_CHAR = int('@');
 const int MONSTER_CHAR = int('G');
 const int WALL_CHAR = int('o');
 const int WIN_CHAR = int('%'); //% sign, a special character used in the ancient game "Rogue"
+const int POWER_CHAR = int('!');
 
 /*
     Game play function prototypes are give below.
 */
 
 // print the game board function protype
+void printGameBoard(int map[NUM_BOARD_X][NUM_BOARD_Y]);
 
 /*
     Do something when the goose captures the player
@@ -47,27 +51,17 @@ const int WIN_CHAR = int('%'); //% sign, a special character used in the ancient
 */
 bool captured(Actor const & player, Actor const & monster);
 
-bool win(Actor const & player, Actor const & endpoint);
-/*
-    Move the player to a new location based on the user input.  You may want
-    to modify this if there are extra controls you want to add.
-    
-    All key presses start with "TK_" then the character.  So "TK_A" is the a
-    key being pressed.
-    
-    A look-up table might be useful.
-    You could decide to learn about switch statements and use them here.
-*/
+bool win(Actor const & player, int map[NUM_BOARD_X][NUM_BOARD_Y]);
 
-void movePlayer(int key, Actor & player, int map[][NUM_BOARD_Y]);
+bool powered_up(Actor const & player, Actor const & power);
+
+void movePlayer(int key, Actor & player, bool powered, int map[][NUM_BOARD_Y]);
 
 void chasePlayer(int key, Actor & goose, Actor & player, int map[][NUM_BOARD_Y]);
 
-int random_num(int max_num, int used[MAX_OBJECTS]);
+void movePower(Actor & power, int map[][NUM_BOARD_Y]);
 
 int random_num(int max_num);
-
-void create_wall(int map[][NUM_BOARD_Y]);
 
 #endif
 

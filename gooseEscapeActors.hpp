@@ -1,3 +1,5 @@
+//gooseEscapeActors.hpp
+
 #ifndef GOOSE_ESCAPE_ACTORS
 #define GOOSE_ESCAPE_ACTORS
 #include <iostream>
@@ -21,8 +23,9 @@
 class Actor
 {
   private:
-    int actorChar;      
+    int actorChar;
     int location_x, location_y;
+    int previous_x, previous_y;
 
   public:
     Actor()
@@ -30,6 +33,8 @@ class Actor
         actorChar = int('A');
         location_x = MIN_SCREEN_X;
         location_y = MIN_SCREEN_Y;
+        previous_x = MIN_SCREEN_X;
+		previous_y = MIN_SCREEN_Y;
         put_actor();
     }
 
@@ -38,6 +43,8 @@ class Actor
         change_char(initPlayerChar);
         location_x = MIN_SCREEN_X;
         location_y = MIN_SCREEN_Y;
+        previous_x = MIN_SCREEN_X;
+		previous_y = MIN_SCREEN_Y;
         update_location(x0,y0);
     }
     
@@ -50,6 +57,16 @@ class Actor
     {
         return location_y;
     }
+    
+    int get_prev_x() const 
+    {
+    	return previous_x;
+	}
+	
+	int get_prev_y() const 
+    {
+    	return previous_y;
+	}
     
     string get_location_string() const
     {
@@ -65,6 +82,11 @@ class Actor
     {
         actorChar = min(int('~'),max(int(new_actor_char),int(' ')));
     }
+    
+    void remove_char()
+    {//makes powered up char empty after player gets it
+    	actorChar = ' ';
+	}
 
     bool can_move(int delta_x, int delta_y) const
     {
@@ -78,7 +100,9 @@ class Actor
     void update_location(int delta_x, int delta_y)
     {
         if (can_move(delta_x, delta_y))
-        {
+        {	
+        	previous_x = location_x;
+        	previous_y = location_y;
             terminal_clear_area(location_x, location_y, 1, 1);
             location_x += delta_x;
             location_y += delta_y;
