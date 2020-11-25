@@ -1,3 +1,5 @@
+//gooseEscapeMain.cpp
+
 #include <BearLibTerminal.h>
 #include <cmath>
 #include <iostream>
@@ -32,21 +34,17 @@ int main()
 	// Declare the array that will hold the game board "map"
   	int map[NUM_BOARD_X][NUM_BOARD_Y] = {0};
   	
-  	//create wall of 10 units
-  	create_wall(map);
+  	//make powerup
+  	Actor power(POWER_CHAR, random_num(NUM_BOARD_X), random_num(NUM_BOARD_Y));
   	
   	//make player
 	Actor player(PLAYER_CHAR, random_num(NUM_BOARD_X), random_num(NUM_BOARD_Y));  
 	
 	//make monster
 	Actor monster(MONSTER_CHAR, random_num(NUM_BOARD_X), random_num(NUM_BOARD_Y));
-	
-	//make win point
-	Actor endpoint(WIN_CHAR, random_num(NUM_BOARD_X), random_num(NUM_BOARD_Y));
-	
-    map[endpoint.get_x()][endpoint.get_y()] = WINNER; 
   	
-    // Call the function to print the game board??
+    // Call the function to print the game board
+    printGameBoard(map);
 
 	// Printing the instructions
     out.writeLine("Escape the Goose! " + monster.get_location_string() + player.get_location_string());
@@ -62,24 +60,34 @@ int main()
 /*
     All key presses start with "TK_" then the character.  So "TK_A" is the "a"
     key being pressed.
-*/
+*/	
     int keyEntered = TK_A;  // can be any valid value that is not ESCAPE or CLOSE
-    
+    bool powered = 0;
     while(keyEntered != TK_ESCAPE && keyEntered != TK_CLOSE 
-		&& !captured(player,monster) && !win(player, endpoint))
+		&& !captured(player,monster) && !win(player, map))
 	{
 	    // get player key press
 	    keyEntered = terminal_read();
 
         if (keyEntered != TK_ESCAPE && keyEntered != TK_CLOSE)
         {
+        	
+        	if(powered_up(player, power) && powered == 0)
+	   		{//triggers upon getting powerup
+      			powered = 1;
+      			out.writeLine("You are powered up!");
+      			power.remove_char();
+			}
+			
             // move the player
-            movePlayer(keyEntered, player, map);
+            movePlayer(keyEntered, player, powered, map);
 			
 			//goose chases the player
-			chasePlayer(keyEntered, monster, player, map); 
-        }
-        
+			chasePlayer(keyEntered, monster, player, map);
+	
+			
+			movePower(power, map);
+        }    
   	}
 
     if (keyEntered != TK_CLOSE)

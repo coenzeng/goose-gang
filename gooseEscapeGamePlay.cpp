@@ -1,3 +1,5 @@
+//gooseEscapeGamePlay.cpp
+
 #include <iostream>
 #include <cmath>
 #include <cstdlib> 
@@ -30,30 +32,29 @@ y direction
     The functions should draw characters to present features of the game
     board, e.g. win location, obstacles, power ups
 */	
-/*
-void print_to_console(int map[][NUM_BOARD_Y])
-{
-	for (int index = 0; index < NUM_BOARD_X; index++)
+
+//print the game board function
+void printGameBoard(int map[NUM_BOARD_X][NUM_BOARD_Y])
+{	
+	//CHANGE THIS FUNCTION 
+	int winPointX=random_num(NUM_BOARD_X);
+	int winPointY=random_num(NUM_BOARD_Y);
+	
+	terminal_put(winPointX,winPointY,WIN_CHAR);
+	map[winPointX][winPointY]=WINNER;
+	
+	int wall_x_location = random_num(START_WALL);
+	//START_WALL = 70, which is NUM_BOARD_X - WALL_LENGTH
+	//if the start of the wall as any higher it would go off screen
+	
+	int wall_y_location = random_num(NUM_BOARD_Y);
+	
+	for (int index = 0; index < WALL_LENGTH; index++)
 	{
-		for (int col_index = 0; col_index < NUM_BOARD_Y; col_index++)
-			cout << map[index][col_index];
-		cout << endl;
+		terminal_put(wall_x_location+index, wall_y_location, WALL_CHAR);
+		map[wall_x_location + index][wall_y_location] = SHALL_NOT_PASS;
 	}
 }
-*/
-// print the game board function
-//}
-  //  terminal_put(x_location_on_board,y_location_on_board,WIN_CHAR);
-//}
-
-/*
-    Do something when the goose captures the player
-    
-    If you want to attack or something else, this is the function you 
-    need to change.  For example, maybe the two touch each other and
-    then fight.  You could add a health to the Actor class that is
-    updated.  Run, use weapons, it's up to you!
-*/
 
 bool captured(Actor const & player, Actor const & monster)
 {
@@ -61,26 +62,20 @@ bool captured(Actor const & player, Actor const & monster)
          && player.get_y() == monster.get_y());
 };
 
-bool win(Actor const & player, Actor const & endpoint)
+bool powered_up(Actor const & player, Actor const & power)
 {
-	return (player.get_x() == endpoint.get_x() 
-         && player.get_y() == endpoint.get_y());
+    return (player.get_x() == power.get_x() 
+         && player.get_y() == power.get_y());
+};
+
+bool win(Actor const & player, int map[NUM_BOARD_X][NUM_BOARD_Y])
+{
+	return (map[player.get_x()][player.get_y()]==WINNER);
 }
 
-/*
-    Move the player to a new location based on the user input.  You may want
-    to modify this if there are extra controls you want to add.
-    
-    All key presses start with "TK_" then the character.  So "TK_A" is the a
-    key being pressed.
-    
-    A look-up table might be useful.
-    You could decide to learn about switch statements and use them here.
-*/
-
-
-void movePlayer(int key, Actor & player, int map[][NUM_BOARD_Y])
+void movePlayer(int key, Actor & player, bool powered, int map[][NUM_BOARD_Y])
 {
+	
     int yMove = 0, xMove = 0;
     if (key == TK_UP)
         yMove = -1;
@@ -91,6 +86,19 @@ void movePlayer(int key, Actor & player, int map[][NUM_BOARD_Y])
     else if (key == TK_RIGHT)
         xMove = 1;
         
+	if(powered)
+	{
+		//if powered up, player can move 2 spaces using WASD
+		if (key == TK_W)
+	        yMove = -2;
+	    else if (key == TK_S)
+	        yMove = 2;
+	    else if (key == TK_A)
+	        xMove = -2;
+	    else if (key == TK_D)
+	        xMove = 2;
+	}   
+	
     if (player.can_move(xMove, yMove) && 
 	map[player.get_x() + xMove][player.get_y() + yMove] != SHALL_NOT_PASS)
         player.update_location(xMove, yMove);
@@ -100,7 +108,7 @@ void chasePlayer(int key, Actor & goose, Actor & player, int map[][NUM_BOARD_Y])
 {
 	int gooseXMove=0, gooseYMove=0;
 	
-	if(key==TK_UP || key==TK_DOWN)
+	if(key==TK_UP || key==TK_DOWN || key==TK_W || key==TK_S)
 	{
 		if(goose.get_y() > player.get_y())
 		{
@@ -117,7 +125,7 @@ void chasePlayer(int key, Actor & goose, Actor & player, int map[][NUM_BOARD_Y])
 			gooseYMove = gooseYMove * 2;
 		}
 	}
-	else if(key==TK_LEFT || key==TK_RIGHT)
+	else if(key==TK_LEFT || key==TK_RIGHT || key==TK_A || key==TK_D)
 	{
 		if(goose.get_x()>player.get_x())
 		{
@@ -128,7 +136,7 @@ void chasePlayer(int key, Actor & goose, Actor & player, int map[][NUM_BOARD_Y])
 			gooseXMove=1;
 		}
 	}
-
+	
 	if (goose.can_move(gooseXMove, gooseYMove) &&
 	map[goose.get_x()+gooseXMove][goose.get_y()+gooseYMove] != SHALL_NOT_PASS)
 	{
@@ -136,39 +144,52 @@ void chasePlayer(int key, Actor & goose, Actor & player, int map[][NUM_BOARD_Y])
 	}
 }
 
-int random_num(int max_num, int used[MAX_OBJECTS])
-{
-	int random = (rand() % max_num) + 1;
+void movePower(Actor & power, int map[][NUM_BOARD_Y])
+{	
+	int powerXMove = power.get_x() - power.get_prev_x();
+	int powerYMove = power.get_y() - power.get_prev_y();
 	
-	//check to see if number is in used array
-	for (int index = 0; index < MAX_OBJECTS ; index++)
-	{
-		if (used[index] == random)
-		{
-			random = (rand() % max_num) + 1;
-			index = 0;
-		}
+	if (power.get_prev_x() == 0)
+	{	
+		//this is true only for the first move, where previous_x == 0
+		powerXMove = 1;
+		powerYMove = 1;
 	}
-	return random;
+	
+	//the following if statement allows the powerup to bounce off walls
+	if (power.can_move(powerXMove, powerYMove) 
+	&& map[power.get_x()+powerXMove][power.get_y()+powerYMove] != SHALL_NOT_PASS)
+	{
+		//if the path is clear, continue in the same direction
+		powerXMove *= 1; 
+		powerYMove *= 1;
+	} else if (powerXMove == 1 && powerYMove == 1)
+	{
+		powerYMove *= -1;	
+	} else if (powerXMove == 1 && powerYMove == -1)
+	{
+		powerXMove *= -1;
+	}else if (powerXMove == -1 && powerYMove == -1)
+	{	
+		powerXMove *= -1;
+	} else
+	{
+		powerYMove *= -1;
+	}
+	
+	//if the powerup can't bounce in one direction it will try the opposite
+	if (!power.can_move(powerXMove, powerYMove))
+	{
+		powerXMove *= -1;
+		powerYMove *= -1;
+	}
+	
+	//update location of powerup
+	power.update_location(powerXMove, powerYMove);
 }
 
-//this function is used for create_wall
 int random_num(int max_num)
 {
-	return (rand() % max_num) + 1;
-}
-
-void create_wall(int map[][NUM_BOARD_Y])
-{
-	int x_location = random_num(START_WALL);
-	//START_WALL = 70, which is NUM_BOARD_X - WALL_LENGTH
-	//if the start of the wall as any higher it would go off screen
-	
-	int y_location = random_num(NUM_BOARD_Y);
-	for (int index = 0; index < WALL_LENGTH; index++)
-	{
-		Actor wall(WALL_CHAR, x_location + index, y_location);
-		map[x_location + index][y_location] = SHALL_NOT_PASS;
-	}
+	return (rand() % max_num);
 }
 
